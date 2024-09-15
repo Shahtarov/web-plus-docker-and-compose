@@ -1,31 +1,36 @@
-import { Injectable } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { User } from "../users/entities/user.entity";
-import { UsersService } from "../users/users.service";
-import * as bcrypt from "bcrypt";
+import { UsersService } from './../users/users.service';
+import { Injectable, UseGuards } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { LocalAuthGuard } from './local-auth.guard';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
-	constructor(
-		private jwtService: JwtService,
-		private usersService: UsersService
-	) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-	auth(user: User) {
-		const payload = { sub: user.id };
+  async validateUser(username: string, password: string) {
+    const userInformation = await this.usersService.getUserWithPassword(
+      username,
+    );
 
-		return { access_token: this.jwtService.sign(payload) };
-	}
+    const isMatch = await bcrypt.compare(password, userInformation.password);
 
-	async validatePassword(username: string, password: string) {
-		const user = await this.usersService.findOneWithPasswordAndEmail(
-			username
-		);
+    if (userInformation && isMatch) {
+      const { password, ...result } = userInformation;
+      return result;
+    }
+    return null;
+  }
 
-		if (user && (await bcrypt.compare(password, user.password))) {
-			const { password, ...result } = user;
-			return result;
-		}
-		return null;
-	}
+  @UseGuards(LocalAuthGuard)
+  async signin(user: User) {
+    const payload = { username: user.username, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload, { expiresIn: '24h' }),
+    };
+  }
 }

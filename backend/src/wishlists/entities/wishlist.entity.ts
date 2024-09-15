@@ -1,27 +1,49 @@
-import { IsUrl, Length, MaxLength } from "class-validator";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from "typeorm";
-import { Wish } from "../../wishes/entities/wish.entity";
-import { User } from "../../users/entities/user.entity";
-import { DefaultEntity } from "../../common/entity/default.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  UpdateDateColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinTable,
+  ManyToMany,
+} from 'typeorm';
+
+import { Length, IsDate, IsFQDN } from 'class-validator';
+import { User } from './../../users/entities/user.entity';
+import { Wish } from './../../wishes/entities/wish.entity';
 
 @Entity()
-export class Wishlist extends DefaultEntity {
-	@Column()
-	@Length(1, 250)
-	name: string;
+export class Wishlist {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-	@Column({ default: "" })
-	@MaxLength(1500)
-	description: string;
+  @CreateDateColumn()
+  @IsDate()
+  createdAt: Date;
 
-	@Column()
-	@IsUrl()
-	image: string;
+  @UpdateDateColumn()
+  @IsDate()
+  updatedAt: Date;
 
-	@ManyToOne(() => User, (user) => user.wishlists)
-	owner: User;
+  @Column()
+  @Length(1, 250)
+  name: string;
 
-	@ManyToMany(() => Wish)
-	@JoinTable()
-	items: Wish[];
+  @Column({
+    default: '',
+  })
+  @Length(0, 1500)
+  description: string;
+
+  @Column()
+  @IsFQDN()
+  image: string;
+
+  @ManyToMany(() => Wish)
+  @JoinTable()
+  items: Wish[];
+
+  @ManyToOne(() => User, (user) => user.wishlists)
+  owner: User;
 }

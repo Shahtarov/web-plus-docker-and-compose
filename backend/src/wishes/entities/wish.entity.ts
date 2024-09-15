@@ -1,42 +1,70 @@
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
-import { Length, IsUrl, IsPositive, IsNumber } from "class-validator";
-import { User } from "../../users/entities/user.entity";
-import { Offer } from "../../offers/entities/offer.entity";
-import { DefaultEntity } from "../../common/entity/default.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  UpdateDateColumn,
+  CreateDateColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 
+import { Length, IsDate, IsFQDN, IsInt, IsPositive } from 'class-validator';
+import { User } from './../../users/entities/user.entity';
+import { Offer } from './../../offers/entities/offer.entity';
 @Entity()
-export class Wish extends DefaultEntity {
-	@Column()
-	@Length(1, 250)
-	name: string;
+export class Wish {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-	@Column()
-	@IsUrl()
-	link: string;
+  @CreateDateColumn()
+  @IsDate()
+  createdAt: Date;
 
-	@Column()
-	@IsUrl()
-	image: string;
+  @UpdateDateColumn()
+  @IsDate()
+  updatedAt: Date;
 
-	@Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
-	@IsNumber()
-	price: number;
+  @Column()
+  @Length(1, 250)
+  name: string;
 
-	@Column({ nullable: true })
-	@IsNumber()
-	raised: number;
+  @Column()
+  @IsFQDN()
+  link: string;
 
-	@Column({ default: "" })
-	@Length(1, 1024)
-	description: string;
+  @Column()
+  @IsFQDN()
+  image: string;
 
-	@ManyToOne(() => User, (user) => user.wishes)
-	owner: User;
+  @Column({
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+  })
+  price: number;
 
-	@OneToMany(() => Offer, (offer) => offer.item)
-	offers: Offer[];
+  @Column({
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  raised: number;
 
-	@Column({ default: 0 })
-	@IsPositive()
-	copied: number;
+  @ManyToOne(() => User, (user) => user.wishes)
+  owner: User;
+
+  @Column()
+  @Length(1, 1024)
+  description: string;
+
+  @OneToMany(() => Offer, (offer) => offer.item)
+  offers: Offer[];
+
+  @Column({
+    default: 0,
+  })
+  @IsInt()
+  @IsPositive()
+  copied: number;
 }

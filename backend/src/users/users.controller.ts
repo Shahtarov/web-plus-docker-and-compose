@@ -1,58 +1,49 @@
 import {
-	Controller,
-	Get,
-	Post,
-	Body,
-	Patch,
-	Param,
-	UseGuards
-} from "@nestjs/common";
-import { UsersService } from "./users.service";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { JwtGuard } from "./../auth/guards/jwt.guard";
-import { FindUsersDto } from "./dto/find-users.dto";
-import { User } from "./entities/user.entity";
-import { ReqUser } from "./users.decorator";
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Request,
+  UseGuards,
+  Post,
+} from '@nestjs/common';
+import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtGuard } from 'src/auth/jwt.guard';
 
 @UseGuards(JwtGuard)
-@Controller("users")
+@Controller('users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-	@Get("me")
-	async findProfile(@ReqUser() user: User) {
-		const profile = await this.usersService.findOneWithPasswordAndEmail(
-			user.username
-		);
-		const { password, ...result } = profile;
-		return result;
-	}
+  @Get('me')
+  findOne(@Request() req) {
+    return req.user;
+  }
 
-	@Patch("me")
-	async updateProfile(
-		@ReqUser() user: User,
-		@Body() updateUserDto: UpdateUserDto
-	) {
-		return await this.usersService.updateOne(user.id, updateUserDto);
-	}
+  @Patch('me')
+  update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+req.user.id, updateUserDto);
+  }
 
-	@Get(":username")
-	findUserByUsername(@Param("username") username: string) {
-		return this.usersService.findOneByUsername(username);
-	}
+  @Post('find')
+  findByQuery(@Body() query: { query: string }) {
+    return this.usersService.findByQuery(query.query);
+  }
 
-	@Post("find")
-	findAll(@Body() findUsersDto: FindUsersDto) {
-		return this.usersService.findMany(findUsersDto);
-	}
+  @Get(':username')
+  findByUsername(@Param('username') username: string) {
+    return this.usersService.findByUsername(username);
+  }
 
-	@Get("me/wishes")
-	getProfileWishes(@ReqUser() user: User) {
-		return this.usersService.getUserWishesById(user.id);
-	}
+  @Get('me/wishes')
+  getMyWishes(@Request() req) {
+    return this.usersService.getMyWishes(req.user.id);
+  }
 
-	@Get(":username/wishes")
-	getUserWishesByUsername(@Param("username") username: string) {
-		return this.usersService.getUserWishesByUsername(username);
-	}
+  @Get(':username/wishes')
+  getUserWishes(@Param('username') username: string) {
+    return this.usersService.getUserWishes(username);
+  }
 }
