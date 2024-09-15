@@ -1,70 +1,42 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  UpdateDateColumn,
-  CreateDateColumn,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import { Length, IsUrl, IsPositive, IsNumber } from "class-validator";
+import { User } from "../../users/entities/user.entity";
+import { Offer } from "../../offers/entities/offer.entity";
+import { DefaultEntity } from "../../common/entity/default.entity";
 
-import { Length, IsDate, IsFQDN, IsInt, IsPositive } from 'class-validator';
-import { User } from './../../users/entities/user.entity';
-import { Offer } from './../../offers/entities/offer.entity';
 @Entity()
-export class Wish {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Wish extends DefaultEntity {
+	@Column()
+	@Length(1, 250)
+	name: string;
 
-  @CreateDateColumn()
-  @IsDate()
-  createdAt: Date;
+	@Column()
+	@IsUrl()
+	link: string;
 
-  @UpdateDateColumn()
-  @IsDate()
-  updatedAt: Date;
+	@Column()
+	@IsUrl()
+	image: string;
 
-  @Column()
-  @Length(1, 250)
-  name: string;
+	@Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+	@IsNumber()
+	price: number;
 
-  @Column()
-  @IsFQDN()
-  link: string;
+	@Column({ nullable: true })
+	@IsNumber()
+	raised: number;
 
-  @Column()
-  @IsFQDN()
-  image: string;
+	@Column({ default: "" })
+	@Length(1, 1024)
+	description: string;
 
-  @Column({
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-  })
-  price: number;
+	@ManyToOne(() => User, (user) => user.wishes)
+	owner: User;
 
-  @Column({
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-    default: 0,
-  })
-  raised: number;
+	@OneToMany(() => Offer, (offer) => offer.item)
+	offers: Offer[];
 
-  @ManyToOne(() => User, (user) => user.wishes)
-  owner: User;
-
-  @Column()
-  @Length(1, 1024)
-  description: string;
-
-  @OneToMany(() => Offer, (offer) => offer.item)
-  offers: Offer[];
-
-  @Column({
-    default: 0,
-  })
-  @IsInt()
-  @IsPositive()
-  copied: number;
+	@Column({ default: 0 })
+	@IsPositive()
+	copied: number;
 }
